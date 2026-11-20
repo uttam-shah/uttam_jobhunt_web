@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 import path from "node:path";
 
-const API_URL = process.env.API_URL || "http://127.0.0.1:8000";
+const API_URL = process.env.API_URL || "https://api.uttamshah.in";//"http://127.0.0.1:8000";
 
 export default {
   reactStrictMode: true,
