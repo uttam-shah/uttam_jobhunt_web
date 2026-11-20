@@ -8,8 +8,8 @@ const display = Sora({ subsets: ["latin"], variable: "--font-display", weight: [
 const body = Inter({ subsets: ["latin"], variable: "--font-body" });
 
 export const metadata: Metadata = {
-  title: "Jobhunt — Fresh jobs in Delhi NCR",
-  description: "Jobs posted in the last 24 hours in Delhi NCR — internships, freshers and up to 2 years, every field. Updated daily at 10 AM.",
+  title: "Jobhunt — Fresh jobs across India",
+  description: "Jobs posted in the last 24 hours across India — internships, freshers and up to 2 years, every field. Updated daily at 10 AM.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

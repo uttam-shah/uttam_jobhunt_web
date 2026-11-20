@@ -1,8 +1,8 @@
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarDays, CheckCircle2, Clock, Mail, SearchX, SlidersHorizontal, Sunrise, TriangleAlert } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, Mail, RefreshCw, SearchX, SlidersHorizontal, Sunrise, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { emailJobs, getMeta, runSearch } from "@/lib/api";
+import { emailJobs, getMeta, getStatus, runSearch, startRefresh } from "@/lib/api";
 import type { Criteria, Job, Meta, SearchResult, View } from "@/lib/types";
 import { cn, dayLabel, save, store } from "@/lib/util";
 import Counter from "./Counter";
@@ -30,6 +30,8 @@ export default function Dashboard() {
   const [emailOpen, setEmailOpen] = useState(false);
   const [toast, setToast] = useState<{ ok: boolean; msg: string } | null>(null);
   const [savedEmail, setSavedEmail] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+  const [nonce, setNonce] = useState(0);          // bump to re-run the search after a fetch
   const ready = useRef(false);
 
   // boot
@@ -58,7 +60,38 @@ export default function Dashboard() {
       }
     }, 250);
     return () => { clearTimeout(t); ctrl.abort(); };
-  }, [c, meta]);
+  }, [c, meta, nonce]);
+
+  // A fetch can be running already (scheduler, or another tab): follow it.
+  useEffect(() => { if (meta?.refreshing) setRefreshing(true); }, [meta?.refreshing]);
+
+  // While fetching, poll until the server says it is done, then reload meta + jobs.
+  useEffect(() => {
+    if (!refreshing) return;
+    let stopped = false;
+    const t = setInterval(async () => {
+      try {
+        const st = await getStatus();
+        if (stopped || st.running) return;
+        setRefreshing(false);
+        setMeta(await getMeta());
+        setNonce((n) => n + 1);
+        setToast(st.last_error
+          ? { ok: false, msg: `Fetch failed: ${st.last_error}` }
+          : { ok: true, msg: `Fetched ${st.boards} boards - ${st.last_update?.new ?? 0} new jobs` });
+      } catch { /* API briefly unreachable: keep polling */ }
+    }, 2500);
+    return () => { stopped = true; clearInterval(t); };
+  }, [refreshing]);
+
+  async function fetchNow() {
+    try {
+      const r = await startRefresh();
+      setRefreshing(r.running);
+    } catch (e) {
+      setToast({ ok: false, msg: e instanceof Error ? e.message : "Could not start the fetch" });
+    }
+  }
 
   useEffect(() => {
     if (!toast) return;
@@ -95,14 +128,22 @@ export default function Dashboard() {
     <div className="wrap">
       <div className="top">
         <div>
-          <h1 className="display" style={{ fontSize: 30 }}>Delhi NCR <span className="grad-text">jobs</span></h1>
+          <h1 className="display" style={{ fontSize: 30 }}>India <span className="grad-text">jobs</span></h1>
           <p style={{ color: "var(--muted)", fontSize: 14, marginTop: 4 }}>
-            Internships, freshers &amp; up to {meta?.max_experience_years ?? 2} years · every field · Delhi, Noida, Gurugram, Faridabad, Ghaziabad
+            Internships, freshers &amp; up to {meta?.max_experience_years ?? 2} years · every field · Delhi NCR, Bengaluru, Hyderabad, Pune, Mumbai &amp; all of India
           </p>
         </div>
-        {meta?.last_update && (
+        {meta && (
           <div className="updated"><Sunrise size={16} />
-            <div><b>Updated {meta.last_update.label}</b><span>Refreshes daily at {meta.run_at} IST</span></div>
+            <div>
+              <b>{refreshing ? "Fetching latest jobs…" : meta.last_update ? `Last fetched ${meta.last_update.label}` : "Not fetched yet"}</b>
+              <span>
+                {meta.last_update ? `${meta.last_update.new} new · ${meta.company_count} boards · ` : ""}auto-fetch daily at {meta.run_at} IST
+              </span>
+            </div>
+            <button className="btn btn-ghost btn-sm" onClick={fetchNow} disabled={refreshing} title="Fetch every company board right now">
+              <RefreshCw size={14} className={refreshing ? "spin" : ""} /> {refreshing ? "Fetching" : "Fetch now"}
+            </button>
           </div>
         )}
       </div>
@@ -112,6 +153,9 @@ export default function Dashboard() {
         <div className="seg day-seg">
           <button className={cn(c.view === "24h" && "on")} onClick={() => setView("24h")}><Clock size={14} /> Last 24 hours</button>
           <button className={cn(c.view === "yesterday" && "on")} onClick={() => setView("yesterday")}>Yesterday</button>
+          <button className={cn(c.view === "3d" && "on")} onClick={() => setView("3d")}>Last 3 days</button>
+          <button className={cn(c.view === "7d" && "on")} onClick={() => setView("7d")}>Last 7 days</button>
+          <button className={cn(c.view === "15d" && "on")} onClick={() => setView("15d")}>Last 15 days</button>
           <label className={cn("date-btn", c.view === "date" && "on")}>
             <CalendarDays size={14} />
             <input type="date" max={meta?.today} value={c.date ?? ""} aria-label="Pick a date"
@@ -190,7 +234,7 @@ export default function Dashboard() {
             <div className="empty">
               <span className="ico"><Sunrise size={28} /></span>
               <h3>First update hasn&apos;t run yet</h3>
-              <p>Jobs appear after the daily update (10:00 IST). To fill the board now, run <b>python -m jobhunt ingest --days 7</b> on the server.</p>
+              <p>Jobs appear after the daily update (10:00 IST). Press <b>Fetch now</b> to fill the board right away.</p>
             </div>
           ) : res && jobs.length === 0 ? (
             <div className="empty">

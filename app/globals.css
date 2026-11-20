@@ -264,6 +264,8 @@ footer.foot { padding: 30px 0 50px; text-align: center; color: var(--dim); font-
 /* ---------- daily board ---------- */
 .top { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; padding: 30px 0 18px; }
 .updated { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); color: var(--lime); }
+.updated .btn { margin-left: 6px; color: var(--text); }
+.spin { animation: spin 1s linear infinite; }
 .updated b { display: block; color: var(--text); font-size: 14px; }
 .updated span { color: var(--muted); font-size: 12.5px; }
 .datebar { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 18px; }

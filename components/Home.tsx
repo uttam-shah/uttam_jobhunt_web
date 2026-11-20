@@ -55,11 +55,11 @@ export default function Home() {
                 </motion.span>
               </AnimatePresence>
             </span>
-            <br /> Delhi NCR.
+            <br /> India.
           </motion.h1>
           <motion.p className="lead" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
             Only jobs posted in the last 24 hours — internships, freshers and up to 2 years of experience across
-            Delhi, Noida, Gurugram, Faridabad and Ghaziabad. Sales, accounts, tech, data entry and more. No sign-up.
+            Delhi NCR, Bengaluru, Hyderabad, Pune, Mumbai and every other city in India. Sales, accounts, tech, data entry and more. No sign-up.
           </motion.p>
           <motion.div className="hero-cta" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
             <Link href="/jobs" className="btn btn-primary btn-lg">See today&apos;s jobs <ArrowRight size={19} /></Link>
@@ -92,7 +92,7 @@ export default function Home() {
         {top.length > 0
           ? top.slice(0, 2).map(([name, n]) => (
               <div className="stat" key={name}><b className="grad-text"><Counter to={n} /></b><span>{name}</span></div>))
-          : <><div className="stat"><b className="grad-text">5</b><span>NCR cities</span></div><div className="stat"><b className="grad-text">20+</b><span>Fields covered</span></div></>}
+          : <><div className="stat"><b className="grad-text">25+</b><span>Indian cities</span></div><div className="stat"><b className="grad-text">20+</b><span>Fields covered</span></div></>}
         <div className="stat"><b className="grad-text"><Counter to={companies.length} /></b><span>Companies tracked</span></div>
       </motion.section>
 

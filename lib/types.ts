@@ -31,6 +31,15 @@ export type Meta = {
   last_update: LastUpdate;
   days: { date: string; n: number }[];
   today: string;
+  refreshing: boolean;
+};
+
+export type Status = {
+  running: boolean;
+  last_update: LastUpdate;
+  last_error: string | null;
+  boards: number;
+  total_jobs: number;
 };
 
 export type Counts = {
@@ -40,7 +49,7 @@ export type Counts = {
   by_experience: Record<string, number>;
 };
 
-export type View = "24h" | "yesterday" | "date";
+export type View = "24h" | "3d" | "7d" | "15d" | "yesterday" | "date";
 
 export type SearchResult = {
   jobs: Job[];
